@@ -466,11 +466,31 @@ let AUTOMATIONS = [];
 let CATS = ['All'];
 let installCounts = {}; // { [automationId]: liveTrackedInstalls } — fetched from /api/install-counts
 
+// localStorage can throw (privacy mode, disabled cookies, etc.) — these
+// wrappers make remembering the chosen language a nice-to-have, not a crash.
+function safeStorageGet(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function safeStorageSet(key, val) {
+  try { localStorage.setItem(key, val); } catch {}
+}
+
 // ── Boot ───────────────────────────────────────────────────
 (async function init() {
-  // Auto-detect language
-  const bl = (navigator.language || '').slice(0,2);
-  if (T[bl]) lang = bl;
+  // Resolve the language to show, in priority order:
+  //   1. ?lang=xx in the URL — lets you share a link that opens the page
+  //      pre-set to a given language, e.g. pokepals.netlify.app/?lang=fr
+  //   2. a language the visitor already picked on a previous visit
+  //   3. the browser's own language
+  //   4. English (the default in `let lang = 'en'` above)
+  // A valid ?lang= is also remembered, so the link only needs to be clicked
+  // once — after that the choice sticks for that visitor automatically.
+  const urlLang    = new URLSearchParams(window.location.search).get('lang');
+  const savedLang  = safeStorageGet('pokepals_lang');
+  const browserLang = (navigator.language || '').slice(0, 2);
+  const picked = [urlLang, savedLang, browserLang].find(c => c && T[c]);
+  if (picked) lang = picked;
+  if (urlLang && T[urlLang]) safeStorageSet('pokepals_lang', urlLang);
 
   // Auto-detect OS (Telegram is the only app available on Android)
   if (/android/i.test(navigator.userAgent)) {
@@ -623,6 +643,7 @@ function closeLangMenu() {
 }
 function setLang(c) {
   lang = c;
+  safeStorageSet('pokepals_lang', c); // remember the choice for next visit
   const l = LANGS.find(x => x.c === c);
   document.getElementById('lFlag').textContent = l.flag;
   document.getElementById('lCode').textContent = c.toUpperCase();
