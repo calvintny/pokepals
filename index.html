@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pokepals — Automations for Poke AI</title>
-  <meta name="description" content="Discover and install powerful AI automations for Poke — your AI assistant in Apple Messages, WhatsApp, and Telegram.">
+  <meta name="description" content="A free, community-made collection of automation templates for Poke — your AI assistant in Apple Messages and Telegram. Browse, install, and make Poke your own.">
   <meta name="theme-color" content="#5E5CE6">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -77,41 +77,57 @@
     .ls-item:hover { background: var(--surf2); }
     .ls-item.on { font-weight: 600; color: var(--accent); }
 
-    /* ── ONBOARDING ──────────────────────────────────────── */
-    .ob {
-      overflow: hidden;
-      max-height: 500px; opacity: 1;
-      transition: max-height .4s var(--ease), opacity .3s;
-      background: linear-gradient(170deg, #f5f3ff 0%, var(--bg) 100%);
-      border-bottom: 1px solid var(--bdr);
+    /* ── START HERE BUTTON ───────────────────────────────── */
+    .start-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px; border-radius: var(--r-pill); border: none;
+      background: var(--accent); color: #fff; font-size: 14.5px; font-weight: 600;
+      cursor: pointer; font-family: var(--font); margin-bottom: 32px;
+      box-shadow: var(--sh-sm); transition: background .15s, transform .1s;
     }
-    .ob.gone { max-height: 0; opacity: 0; pointer-events: none; }
-    .ob-wrap { max-width: var(--mw); margin: 0 auto; padding: 22px 24px 20px; }
-    .ob-top {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      margin-bottom: 14px;
+    .start-btn:hover { background: var(--accent-dk); transform: scale(1.02); }
+
+    /* ── GETTING-STARTED WIZARD (modal) ──────────────────── */
+    .wiz-overlay {
+      position: fixed; inset: 0; z-index: 400;
+      background: rgba(20,18,40,0.45);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; visibility: hidden;
+      transition: opacity .2s var(--ease), visibility 0s linear .2s;
     }
-    .ob-title { font-size: 15px; font-weight: 600; }
-    .ob-sub   { font-size: 13px; color: var(--tx2); margin-top: 2px; }
-    .ob-close {
-      width: 26px; height: 26px; border-radius: 50%;
+    .wiz-overlay.show { opacity: 1; visibility: visible; transition: opacity .2s var(--ease); }
+    .wiz {
+      width: 100%; max-width: 400px; max-height: 88vh; overflow-y: auto;
+      background: var(--surf); border-radius: var(--r-lg);
+      box-shadow: var(--sh-lg); padding: 24px 22px 22px; position: relative;
+      transform: scale(.96) translateY(8px);
+      transition: transform .25s var(--ease);
+    }
+    .wiz-overlay.show .wiz { transform: scale(1) translateY(0); }
+    .wiz-x {
+      position: absolute; top: 16px; right: 16px;
+      width: 28px; height: 28px; border-radius: 50%;
       border: 1px solid var(--bdr); background: transparent;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 10px; color: var(--tx3); flex-shrink: 0; margin-top: 1px;
+      cursor: pointer; font-size: 11px; color: var(--tx3);
       transition: background .15s;
     }
-    .ob-close:hover { background: rgba(0,0,0,0.06); }
+    [dir="rtl"] .wiz-x { right: auto; left: 16px; }
+    .wiz-x:hover { background: rgba(0,0,0,0.06); }
+    .wiz-title { font-size: 17px; font-weight: 700; letter-spacing: -.2px; padding-inline-end: 30px; }
+    .wiz-sub   { font-size: 13px; color: var(--tx2); margin-top: 3px; }
+    .wiz-controls { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 
-    /* OS toggle */
-    .seg-bg { display: inline-flex; background: rgba(0,0,0,0.06); border-radius: var(--r-pill); padding: 3px; margin-bottom: 14px; }
+    /* OS toggle / app chips (reused inside wizard) */
+    .seg-bg { display: inline-flex; background: rgba(0,0,0,0.06); border-radius: var(--r-pill); padding: 3px; }
     .seg {
       padding: 5px 14px; border-radius: var(--r-pill); font-size: 12.5px; font-weight: 500;
       cursor: pointer; color: var(--tx2); transition: all .15s;
     }
     .seg.on { background: var(--surf); color: var(--tx1); box-shadow: var(--sh-sm); }
-
-    /* app chips */
-    .app-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
+    .app-row { display: flex; gap: 7px; flex-wrap: wrap; }
     .app-chip {
       display: flex; align-items: center; gap: 6px;
       padding: 7px 14px; border-radius: var(--r-pill);
@@ -122,30 +138,38 @@
     .app-chip:hover { border-color: rgba(94,92,230,.4); color: var(--tx1); }
     .app-chip.on { border-color: var(--accent); background: var(--accent-lt); color: var(--accent-dk); }
 
-    /* steps */
-    .steps-row { display: flex; gap: 9px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-    .steps-row::-webkit-scrollbar { display: none; }
-    .step {
-      flex: 0 0 185px; background: var(--surf); border-radius: var(--r-md);
-      padding: 14px 15px; border: 1px solid var(--bdr);
-      box-shadow: var(--sh-sm);
-      animation: fadeUp .25s var(--ease) both;
-    }
-    .step:nth-child(2) { animation-delay: .05s; }
-    .step:nth-child(3) { animation-delay: .1s; }
-    .step:nth-child(4) { animation-delay: .15s; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .step-n {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--accent); color: #fff;
+    /* step stage */
+    .wiz-stage { text-align: center; padding: 26px 6px 4px; }
+    .wiz-visual {
+      width: 104px; height: 104px; margin: 0 auto 18px; border-radius: 26px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; margin-bottom: 9px;
+      font-size: 46px; box-shadow: var(--sh-md);
+      animation: wizPop .35s var(--ease) both;
     }
-    .step-t { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-    .step-d { font-size: 11.5px; color: var(--tx2); line-height: 1.55; }
+    @keyframes wizPop {
+      from { opacity: 0; transform: scale(.82) translateY(6px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .wiz-stepno { font-size: 11.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .wiz-stept  { font-size: 18px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 6px; }
+    .wiz-stepd  { font-size: 13.5px; color: var(--tx2); line-height: 1.6; max-width: 300px; margin: 0 auto; text-wrap: pretty; }
+
+    .wiz-dots { display: flex; justify-content: center; gap: 6px; margin: 20px 0 4px; }
+    .wiz-dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--bdr); transition: all .2s var(--ease); }
+    .wiz-dot.on { width: 18px; border-radius: 4px; background: var(--accent); }
+
+    .wiz-nav { display: flex; gap: 10px; margin-top: 18px; }
+    .wiz-btn {
+      flex: 1; padding: 11px 16px; border-radius: var(--r-pill); border: none;
+      font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font);
+      transition: background .15s, transform .1s, opacity .15s;
+    }
+    .wiz-btn.ghost { background: var(--surf2); color: var(--tx1); }
+    .wiz-btn.ghost:hover { background: var(--bdr); }
+    .wiz-btn.ghost[disabled] { opacity: .4; cursor: default; }
+    .wiz-btn.ghost[disabled]:hover { background: var(--surf2); }
+    .wiz-btn.primary { background: var(--accent); color: #fff; }
+    .wiz-btn.primary:hover { background: var(--accent-dk); transform: scale(1.02); }
 
     /* ── HERO ────────────────────────────────────────────── */
     .hero {
@@ -303,8 +327,8 @@
       .srch  { max-width: 100%; min-width: 0; flex: 1 1 100%; }
       .content { padding: 20px 16px 56px; }
       .grid  { grid-template-columns: 1fr; gap: 11px; }
-      .ob-wrap { padding: 18px 16px 16px; }
-      .step  { flex-basis: 170px; }
+      .wiz   { padding: 20px 16px 18px; }
+      .wiz-visual { width: 88px; height: 88px; font-size: 38px; border-radius: 22px; }
     }
   </style>
 </head>
@@ -341,26 +365,30 @@
   </div>
 </header>
 
-<!-- ══ ONBOARDING ══════════════════════════════════════════ -->
-<div class="ob" id="ob" aria-label="Getting started guide">
-  <div class="ob-wrap">
-    <div class="ob-top">
-      <div>
-        <div class="ob-title" id="ob-title"></div>
-        <div class="ob-sub"   id="ob-sub"></div>
+<!-- ══ GETTING-STARTED WIZARD (opened via "Start here") ═══ -->
+<div class="wiz-overlay" id="wizOverlay" role="presentation" onclick="if(event.target===this) closeWizard()">
+  <div class="wiz" role="dialog" aria-modal="true" aria-labelledby="wiz-title">
+    <button class="wiz-x" onclick="closeWizard()" aria-label="Close">✕</button>
+    <div class="wiz-title" id="wiz-title"></div>
+    <div class="wiz-sub"   id="wiz-sub"></div>
+    <div class="wiz-controls">
+      <div class="seg-bg" role="tablist">
+        <div class="seg on" id="wtab-ios"     role="tab" onclick="wizSetOS('ios',this)"></div>
+        <div class="seg"    id="wtab-android" role="tab" onclick="wizSetOS('android',this)"></div>
       </div>
-      <button class="ob-close" onclick="closeOb()" aria-label="Close">✕</button>
+      <div class="app-row" id="wizAppRow"></div>
     </div>
-    <div class="seg-bg" role="tablist">
-      <div class="seg on" id="tab-ios"     role="tab" onclick="setOS('ios',this)"></div>
-      <div class="seg"    id="tab-android" role="tab" onclick="setOS('android',this)"></div>
+    <div class="wiz-stage">
+      <div class="wiz-visual" id="wizVisual" aria-hidden="true"></div>
+      <div class="wiz-stepno" id="wizStepNo"></div>
+      <div class="wiz-stept"  id="wizStepT"></div>
+      <div class="wiz-stepd"  id="wizStepD"></div>
     </div>
-    <div class="app-row" id="appRow">
-      <button class="app-chip on" data-app="imessage" onclick="setApp('imessage',this)">💬 <span id="chip-im"></span></button>
-      <button class="app-chip"   data-app="whatsapp"  onclick="setApp('whatsapp',this)">🟢 <span id="chip-wa"></span></button>
-      <button class="app-chip"   data-app="telegram"  onclick="setApp('telegram',this)">✈️ <span id="chip-tg"></span></button>
+    <div class="wiz-dots" id="wizDots" aria-hidden="true"></div>
+    <div class="wiz-nav">
+      <button class="wiz-btn ghost"   id="wizBackBtn" onclick="wizPrev()"></button>
+      <button class="wiz-btn primary" id="wizNextBtn" onclick="wizNext()"></button>
     </div>
-    <div class="steps-row" id="stepsRow" role="list"></div>
   </div>
 </div>
 
@@ -370,6 +398,9 @@
     <div class="hero-pill">⚡ <span id="hero-badge"></span></div>
     <h1><span id="hero-h1a"></span><em id="hero-h1b"></em></h1>
     <p class="hero-p" id="hero-p"></p>
+    <button class="start-btn" id="startBtn" onclick="openWizard()">
+      <span aria-hidden="true">🚀</span><span id="start-label"></span>
+    </button>
     <div class="stats">
       <div><div class="stat-n" id="stat-auto-n">—</div><div class="stat-l" id="st-auto"></div></div>
       <div><div class="stat-n" id="stat-installs-n">—</div><div class="stat-l" id="st-installs"></div></div>
@@ -416,7 +447,21 @@
 <script src="translations.js"></script>
 <script>
 // ── State ──────────────────────────────────────────────────
-let lang = 'en', os = 'ios', app = 'imessage', cat = 'All', obOpen = true;
+// Apple Messages requires an iPhone, so it's iOS-only; WhatsApp isn't part of
+// the supported lineup, so the wizard only ever offers what each OS can use.
+const OS_APPS = { ios: ['imessage', 'telegram'], android: ['telegram'] };
+const APP_META = {
+  imessage: { icon: '💬', key: 'app_im' },
+  telegram: { icon: '✈️', key: 'app_tg' },
+};
+const WIZ_GRADIENTS = [
+  'linear-gradient(140deg, #5E5CE6 0%, #C084FC 100%)',
+  'linear-gradient(140deg, #34D399 0%, #3B82F6 100%)',
+  'linear-gradient(140deg, #F59E0B 0%, #FB7185 100%)',
+  'linear-gradient(140deg, #06B6D4 0%, #6366F1 100%)',
+];
+let lang = 'en', os = 'ios', app = 'imessage', cat = 'All';
+let wizStep = 0;
 let AUTOMATIONS = [];
 let CATS = ['All'];
 let installCounts = {}; // { [automationId]: liveTrackedInstalls } — fetched from /api/install-counts
@@ -427,15 +472,13 @@ let installCounts = {}; // { [automationId]: liveTrackedInstalls } — fetched f
   const bl = (navigator.language || '').slice(0,2);
   if (T[bl]) lang = bl;
 
-  // Auto-detect OS
+  // Auto-detect OS (Telegram is the only app available on Android)
   if (/android/i.test(navigator.userAgent)) {
-    os = 'android'; app = 'whatsapp';
+    os = 'android'; app = 'telegram';
   }
 
   buildLangMenu();
   applyLang();
-  syncOSTabs();
-  renderSteps();
 
   await loadAutomations();
   buildPills();
@@ -532,14 +575,14 @@ function applyLang() {
   document.documentElement.lang = lang;
   document.documentElement.dir  = l.dir;
 
-  // Onboarding
-  document.getElementById('ob-title').textContent = t('ob_title');
-  document.getElementById('ob-sub').textContent   = t('ob_sub');
-  document.getElementById('tab-ios').textContent     = t('tab_ios');
-  document.getElementById('tab-android').textContent = t('tab_android');
-  document.getElementById('chip-im').textContent = t('app_im');
-  document.getElementById('chip-wa').textContent = t('app_wa');
-  document.getElementById('chip-tg').textContent = t('app_tg');
+  // Getting-started wizard
+  document.getElementById('start-label').textContent  = t('start_label');
+  document.getElementById('wiz-title').textContent    = t('wiz_title');
+  document.getElementById('wiz-sub').textContent      = t('wiz_sub');
+  document.getElementById('wtab-ios').textContent     = t('tab_ios');
+  document.getElementById('wtab-android').textContent = t('tab_android');
+  renderWizAppRow();
+  renderWizard();
 
   // Hero
   document.getElementById('hero-badge').textContent = t('hero_badge');
@@ -590,47 +633,87 @@ function setLang(c) {
   renderSteps();
 }
 
-// ── Onboarding ─────────────────────────────────────────────
-function closeOb() {
-  obOpen = false;
-  document.getElementById('ob').classList.add('gone');
+// ── Getting-started wizard ─────────────────────────────────
+// A "Start here" button opens a small step-by-step modal: pick your phone +
+// messaging app, then click through an illustrated walkthrough one step at a
+// time (Back/Next, dots, Esc/arrow keys) — instead of a wall of text.
+function currentSteps() {
+  return STEPS[app + '_' + os] || STEPS['imessage_ios'];
 }
-function syncOSTabs() {
-  document.querySelectorAll('.seg').forEach(s => s.classList.remove('on'));
-  document.getElementById('tab-' + os).classList.add('on');
-  document.querySelectorAll('.app-chip').forEach(c => {
-    c.classList.toggle('on', c.dataset.app === app);
-  });
+function openWizard() {
+  wizStep = 0;
+  syncWizTabs();
+  renderWizAppRow();
+  renderWizard();
+  document.getElementById('wizOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
 }
-function setOS(v, el) {
+function closeWizard() {
+  document.getElementById('wizOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+function syncWizTabs() {
+  document.querySelectorAll('#wizOverlay .seg').forEach(s => s.classList.remove('on'));
+  document.getElementById('wtab-' + os).classList.add('on');
+}
+function wizSetOS(v, el) {
   os = v;
-  document.querySelectorAll('.seg').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('#wizOverlay .seg').forEach(s => s.classList.remove('on'));
   el.classList.add('on');
-  // iMessage unavailable on Android
-  if (v === 'android' && app === 'imessage') {
-    app = 'whatsapp';
-    document.querySelectorAll('.app-chip').forEach(c => c.classList.toggle('on', c.dataset.app === 'whatsapp'));
-  }
-  renderSteps();
+  if (!OS_APPS[os].includes(app)) app = OS_APPS[os][0];
+  wizStep = 0;
+  renderWizAppRow();
+  renderWizard();
 }
-function setApp(v, el) {
+function wizSetApp(v, el) {
   app = v;
-  document.querySelectorAll('.app-chip').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('#wizAppRow .app-chip').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
-  renderSteps();
+  wizStep = 0;
+  renderWizard();
 }
-function renderSteps() {
-  const key   = app + '_' + os;
-  const steps = STEPS[key] || STEPS['whatsapp_ios'];
-  const appLabel = { imessage: t('app_im'), whatsapp: t('app_wa'), telegram: t('app_tg') }[app];
-  document.getElementById('stepsRow').innerHTML = steps.map(([title, desc], i) =>
-    `<div class="step" role="listitem">
-      <div class="step-n">${i + 1}</div>
-      <div class="step-t">${title.replace('{app}', appLabel)}</div>
-      <div class="step-d">${desc}</div>
-    </div>`
+function renderWizAppRow() {
+  document.getElementById('wizAppRow').innerHTML = OS_APPS[os].map(a =>
+    `<button class="app-chip ${a === app ? 'on' : ''}" data-app="${a}" onclick="wizSetApp('${a}',this)">${APP_META[a].icon} ${t(APP_META[a].key)}</button>`
   ).join('');
 }
+function renderWizard() {
+  const steps = currentSteps();
+  if (wizStep >= steps.length) wizStep = steps.length - 1;
+  const [icon, title, desc] = steps[wizStep];
+  const appLabel = { imessage: t('app_im'), telegram: t('app_tg') }[app];
+
+  const visual = document.getElementById('wizVisual');
+  visual.style.background = WIZ_GRADIENTS[wizStep % WIZ_GRADIENTS.length];
+  visual.textContent = icon;
+
+  document.getElementById('wizStepNo').textContent = t('step_label')(wizStep + 1, steps.length);
+  document.getElementById('wizStepT').textContent  = title.replace('{app}', appLabel);
+  document.getElementById('wizStepD').textContent  = desc;
+
+  document.getElementById('wizDots').innerHTML = steps.map((_, i) =>
+    `<div class="wiz-dot ${i === wizStep ? 'on' : ''}"></div>`
+  ).join('');
+
+  const back = document.getElementById('wizBackBtn');
+  const next = document.getElementById('wizNextBtn');
+  back.textContent = t('wiz_back');
+  back.disabled = wizStep === 0;
+  next.textContent = wizStep === steps.length - 1 ? t('wiz_done') : t('wiz_next');
+}
+function wizPrev() {
+  if (wizStep > 0) { wizStep--; renderWizard(); }
+}
+function wizNext() {
+  if (wizStep < currentSteps().length - 1) { wizStep++; renderWizard(); }
+  else closeWizard();
+}
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('wizOverlay').classList.contains('show')) return;
+  if (e.key === 'Escape')    closeWizard();
+  if (e.key === 'ArrowRight') wizNext();
+  if (e.key === 'ArrowLeft')  wizPrev();
+});
 
 // ── Filters ────────────────────────────────────────────────
 function buildPills() {
