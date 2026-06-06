@@ -1,0 +1,69 @@
+{
+  "automations": [
+    {
+      "id": "daily-email-digest",
+      "name": "Daily Email Digest",
+      "description": "Get a smart summary of your most important emails every morning at 8am. Never miss a critical message.",
+      "icon": "📬",
+      "bg": "linear-gradient(140deg, #667eea 0%, #764ba2 100%)",
+      "cat": "Email",
+      "isNew": false,
+      "isPopular": true,
+      "rating": 4.8,
+      "reviewCount": 1243,
+      "installs": 8900
+    },
+    {
+      "id": "smart-meeting-scheduler",
+      "name": "Smart Meeting Scheduler",
+      "description": "Say \"schedule a meeting with John next Tuesday\" — Poke finds a free slot, sends invites, and syncs your calendar.",
+      "icon": "📅",
+      "bg": "linear-gradient(140deg, #f7971e 0%, #ffd200 100%)",
+      "cat": "Calendar",
+      "isNew": false,
+      "isPopular": false,
+      "rating": 4.7,
+      "reviewCount": 843,
+      "installs": 6200
+    },
+    {
+      "id": "package-delivery-tracker",
+      "name": "Package Delivery Tracker",
+      "description": "Automatically track all your packages and get notified the moment they're out for delivery.",
+      "icon": "📦",
+      "bg": "linear-gradient(140deg, #11998e 0%, #38ef7d 100%)",
+      "cat": "Integrations",
+      "isNew": true,
+      "isPopular": true,
+      "rating": 4.9,
+      "reviewCount": 2109,
+      "installs": 15400
+    },
+    {
+      "id": "web-research-brief",
+      "name": "Web Research Brief",
+      "description": "Ask Poke to research any topic and receive a concise, cited summary — perfect for quick decisions.",
+      "icon": "🔍",
+      "bg": "linear-gradient(140deg, #4facfe 0%, #00f2fe 100%)",
+      "cat": "Web Search",
+      "isNew": false,
+      "isPopular": false,
+      "rating": 4.6,
+      "reviewCount": 567,
+      "installs": 4100
+    },
+    {
+      "id": "sleep-wake-routine",
+      "name": "Sleep & Wake Routine",
+      "description": "Build a personalized wind-down and morning routine with gentle reminders tailored to your schedule.",
+      "icon": "🌙",
+      "bg": "linear-gradient(140deg, #a18cd1 0%, #fbc2eb 100%)",
+      "cat": "Health",
+      "isNew": true,
+      "isPopular": false,
+      "rating": 4.7,
+      "reviewCount": 389,
+      "installs": 2800
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+backend:
+  name: git-gateway
+  branch: main
+
+# Netlify Identity handles auth; Git Gateway commits CMS edits straight to this repo.
+# Enable both in Netlify: Site settings → Identity → Enable, and Identity → Services → Git Gateway.
+
+local_backend: true
+
+media_folder: "media"
+public_folder: "/media"
+
+collections:
+  - name: "automations"
+    label: "Automations"
+    label_singular: "Automation"
+    description: "The automations listed on the Pokepals homepage. Names & descriptions are English-only — the site UI itself is translated separately."
+    files:
+      - name: "catalog"
+        label: "Automation Catalog"
+        file: "automations.json"
+        description: "Add, remove, or reorder automations. Changes go live as soon as Netlify finishes deploying."
+        fields:
+          - name: "automations"
+            label: "Automations"
+            label_singular: "Automation"
+            widget: "list"
+            summary: "{{fields.name}} — {{fields.cat}}"
+            fields:
+              - { name: "id", label: "Recipe ID", hint: "Must match the slug at poke.com/r/[id] — used for the install link and share link.", widget: "string" }
+              - { name: "name", label: "Name", widget: "string" }
+              - { name: "description", label: "Description", widget: "text" }
+              - { name: "icon", label: "Icon (emoji)", widget: "string", hint: "A single emoji shown on the card, e.g. 📬" }
+              - { name: "bg", label: "Icon background (CSS)", widget: "string", hint: "Any CSS background value, e.g. linear-gradient(140deg, #667eea 0%, #764ba2 100%)" }
+              - name: "cat"
+                label: "Category"
+                widget: "select"
+                options: ["Email", "Calendar", "Reminders", "Web Search", "Integrations", "Health"]
+              - { name: "isNew", label: "Show \"NEW\" badge", widget: "boolean", default: false }
+              - { name: "isPopular", label: "Show \"Popular\" badge", widget: "boolean", default: false }
+              - { name: "rating", label: "Star rating (0–5)", widget: "number", value_type: "float", min: 0, max: 5, step: 0.1 }
+              - { name: "reviewCount", label: "Review count", widget: "number", value_type: "int", min: 0 }
+              - { name: "installs", label: "Install count", widget: "number", value_type: "int", min: 0, hint: "Drives \"Most popular\" sort order" }
