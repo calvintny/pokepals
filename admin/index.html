@@ -6,6 +6,25 @@
   <title>Pokepals Content Manager</title>
 </head>
 <body>
+  <!-- Load the Identity widget on its own, BEFORE the CMS bundle. It reads
+       any invite/recovery/confirmation token straight out of the URL hash
+       (and clears it) the moment it initializes. If we let decap-cms.js load
+       it bundled-in instead, its internal hash router rewrites the hash to
+       "#/invite_token=..." first and the widget never recognizes the token —
+       you'd land on a plain login screen instead of the "set your password"
+       dialog. -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", function (user) {
+        if (!user) {
+          window.netlifyIdentity.on("login", function () {
+            document.location.href = "/admin/";
+          });
+        }
+      });
+    }
+  </script>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 </body>
 </html>

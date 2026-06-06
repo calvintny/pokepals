@@ -5,8 +5,6 @@ backend:
 # Netlify Identity handles auth; Git Gateway commits CMS edits straight to this repo.
 # Enable both in Netlify: Site settings → Identity → Enable, and Identity → Services → Git Gateway.
 
-local_backend: true
-
 media_folder: "media"
 public_folder: "/media"
 

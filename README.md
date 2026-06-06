@@ -28,14 +28,26 @@ so it can authenticate you and commit your edits back to the repo:
 2. Under Identity **Registration**, set it to **Invite only** (so randoms can't sign up).
 3. Under Identity → **Services**, enable **Git Gateway**.
 4. Identity tab → **Invite users** → invite yourself by email.
-5. Open the invite email and click the link. **Heads up:** Netlify always sends these links to your site's
-   *root* with a token in the URL hash (e.g. `https://yoursite.netlify.app/#invite_token=...`), not to
-   `/admin`. `index.html` already includes a small redirect script that catches this and forwards you to
-   `/admin/`, where the CMS's Identity widget picks up the token and shows a **"Complete your signup"**
-   dialog so you can set a password. (If you ever land on the homepage with `#invite_token=`,
-   `#recovery_token=`, or `#confirmation_token=` in the URL and *don't* get redirected — e.g. because
-   you're testing against an older deploy — just manually replace the part before `#` with `/admin/`.)
-6. From then on, just go to `https://<your-site>.netlify.app/admin/` and log in normally.
+5. Open the invite email and click the link.
+
+   **Two gotchas baked into Netlify Identity that this repo already works around — but only once the fixes
+   below are deployed:**
+
+   - Netlify always sends invite/recovery links to your site's **root** with a token in the URL hash
+     (e.g. `https://yoursite.netlify.app/#invite_token=...`), never to `/admin`. `index.html` includes a
+     redirect script that catches this and forwards you to `/admin/`.
+   - The Identity widget has to be the *first* thing to read that token — otherwise Decap CMS's own
+     router rewrites the hash to `#/invite_token=...` (note the extra `/`) before the widget sees it,
+     and you land on a plain **login** screen instead of a **"Complete your signup"** dialog.
+     `admin/index.html` now loads the Identity widget as its own script, ahead of the CMS bundle, to
+     avoid that race.
+
+   **Important:** an invite/recovery token is single-use and expires once the page loads — if you already
+   clicked a link and saw the login screen (instead of a password prompt), that token is now spent. After
+   redeploying with these fixes, go back to the Identity tab and click **"Invite users"** again (or, for
+   an existing user, the **⋯ menu → Send recovery email**) to issue a fresh token, then click the new link.
+6. You should now see a **"Complete your signup"** modal — set your password there.
+7. From then on, just go to `https://<your-site>.netlify.app/admin/` and log in normally.
 
 From then on, editing `automations.json` is a form — no JSON, no git, no code. Add/remove/reorder
 automations, set the icon, category, badges, rating, etc. Saving commits straight to `main`, and Netlify
