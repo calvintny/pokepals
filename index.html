@@ -312,6 +312,19 @@
 </head>
 <body>
 
+<!-- Netlify Identity sends invite/recovery/confirmation links to the site root
+     with a token in the URL hash (e.g. #invite_token=...). Only the /admin page
+     has the Identity widget loaded (via Decap CMS) to actually process that
+     token, so forward it there before anything else runs. -->
+<script>
+  (function () {
+    var h = window.location.hash;
+    if (h && /(invite_token|recovery_token|confirmation_token|email_change_token)=/.test(h)) {
+      window.location.replace('/admin/' + h);
+    }
+  })();
+</script>
+
 <!-- ══ HEADER ══════════════════════════════════════════════ -->
 <header class="hdr">
   <a class="logo" href="#">

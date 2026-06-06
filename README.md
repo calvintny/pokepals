@@ -27,8 +27,15 @@ so it can authenticate you and commit your edits back to the repo:
 1. In your Netlify site dashboard: **Site configuration → Identity → Enable Identity**.
 2. Under Identity **Registration**, set it to **Invite only** (so randoms can't sign up).
 3. Under Identity → **Services**, enable **Git Gateway**.
-4. Identity tab → **Invite users** → invite yourself by email, then accept the invite from your inbox and set a password.
-5. Visit `https://<your-site>.netlify.app/admin/` and log in.
+4. Identity tab → **Invite users** → invite yourself by email.
+5. Open the invite email and click the link. **Heads up:** Netlify always sends these links to your site's
+   *root* with a token in the URL hash (e.g. `https://yoursite.netlify.app/#invite_token=...`), not to
+   `/admin`. `index.html` already includes a small redirect script that catches this and forwards you to
+   `/admin/`, where the CMS's Identity widget picks up the token and shows a **"Complete your signup"**
+   dialog so you can set a password. (If you ever land on the homepage with `#invite_token=`,
+   `#recovery_token=`, or `#confirmation_token=` in the URL and *don't* get redirected — e.g. because
+   you're testing against an older deploy — just manually replace the part before `#` with `/admin/`.)
+6. From then on, just go to `https://<your-site>.netlify.app/admin/` and log in normally.
 
 From then on, editing `automations.json` is a form — no JSON, no git, no code. Add/remove/reorder
 automations, set the icon, category, badges, rating, etc. Saving commits straight to `main`, and Netlify
