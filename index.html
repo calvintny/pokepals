@@ -250,11 +250,9 @@
 
     .c-desc { font-size: 13px; color: var(--tx2); line-height: 1.6; text-wrap: pretty; }
 
-    .c-rating { display: flex; align-items: center; gap: 5px; }
-    .stars    { display: flex; gap: 1px; }
-    .star     { font-size: 11px; }
-    .r-num    { font-size: 13px; font-weight: 600; }
-    .r-cnt    { font-size: 11.5px; color: var(--tx3); }
+    .c-installs { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--tx2); }
+    .c-installs svg { color: var(--tx3); flex-shrink: 0; }
+    .c-installs b   { font-weight: 600; color: var(--tx1); }
 
     .c-actions { display: flex; gap: 7px; align-items: center; margin-top: 1px; }
     .btn-inst {
@@ -373,9 +371,8 @@
     <h1><span id="hero-h1a"></span><em id="hero-h1b"></em></h1>
     <p class="hero-p" id="hero-p"></p>
     <div class="stats">
-      <div><div class="stat-n">500+</div><div class="stat-l" id="st-auto"></div></div>
-      <div><div class="stat-n">10K+</div><div class="stat-l" id="st-users"></div></div>
-      <div><div class="stat-n">4.8★</div><div class="stat-l" id="st-rating"></div></div>
+      <div><div class="stat-n" id="stat-auto-n">—</div><div class="stat-l" id="st-auto"></div></div>
+      <div><div class="stat-n" id="stat-installs-n">—</div><div class="stat-l" id="st-installs"></div></div>
     </div>
   </div>
 </section>
@@ -394,7 +391,6 @@
     <select class="sort-sel" id="sortSel" onchange="doFilter()" aria-label="Sort order">
       <option value="popular" id="opt-pop"></option>
       <option value="newest"  id="opt-new"></option>
-      <option value="rating"  id="opt-rate"></option>
       <option value="name"    id="opt-az"></option>
     </select>
   </div>
@@ -423,6 +419,7 @@
 let lang = 'en', os = 'ios', app = 'imessage', cat = 'All', obOpen = true;
 let AUTOMATIONS = [];
 let CATS = ['All'];
+let installCounts = {}; // { [automationId]: liveTrackedInstalls } — fetched from /api/install-counts
 
 // ── Boot ───────────────────────────────────────────────────
 (async function init() {
@@ -450,19 +447,78 @@ let CATS = ['All'];
   });
 })();
 
-// ── Content (CMS-managed) ───────────────────────────────────
+// ── Content (CMS-managed) ────────────────────────────────────
+// automations.json is edited via the CMS. Install counts are tracked for
+// real in a Netlify Function backed by Netlify Blobs (see netlify/functions/
+// install-counts.js) — the JSON's `installs` field is just a starting/seed
+// number so the catalog doesn't look empty on day one; the live tracked count
+// is added on top everywhere a total is shown.
 async function loadAutomations() {
+  const [autoRes, countsRes] = await Promise.allSettled([
+    fetch('automations.json', { cache: 'no-cache' }),
+    fetch('/api/install-counts', { cache: 'no-cache' }),
+  ]);
+
   try {
-    const res = await fetch('automations.json', { cache: 'no-cache' });
-    const json = await res.json();
-    AUTOMATIONS = json.automations || [];
-    const cats = new Set();
-    AUTOMATIONS.forEach(a => cats.add(a.cat));
-    CATS = ['All', ...cats];
-  } catch (err) {
+    if (autoRes.status === 'fulfilled' && autoRes.value.ok) {
+      const json = await autoRes.value.json();
+      AUTOMATIONS = json.automations || [];
+    } else {
+      AUTOMATIONS = [];
+    }
+  } catch {
     AUTOMATIONS = [];
-    CATS = ['All'];
   }
+
+  try {
+    installCounts = (countsRes.status === 'fulfilled' && countsRes.value.ok)
+      ? await countsRes.value.json()
+      : {};
+  } catch {
+    installCounts = {};
+  }
+
+  const cats = new Set();
+  AUTOMATIONS.forEach(a => cats.add(a.cat));
+  CATS = ['All', ...cats];
+
+  updateHeroStats();
+}
+
+// Combined install count for one automation: CMS seed value + live tracked count.
+function totalInstalls(a) {
+  return (a.installs || 0) + (installCounts[a.id] || 0);
+}
+function formatCount(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return String(n);
+}
+// Real, live numbers — not hard-coded marketing stats.
+function updateHeroStats() {
+  const totalAuto = AUTOMATIONS.length;
+  const totalInst = AUTOMATIONS.reduce((sum, a) => sum + totalInstalls(a), 0);
+  document.getElementById('stat-auto-n').textContent     = String(totalAuto);
+  document.getElementById('stat-installs-n').textContent = formatCount(totalInst);
+}
+
+// Fire-and-forget: increments the real counter in the background when someone
+// actually clicks Install (the link still opens poke.com in a new tab either way).
+function trackInstall(id) {
+  fetch('/api/install-counts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+  })
+    .then(res => (res.ok ? res.json() : null))
+    .then(data => {
+      if (data && data.id) {
+        installCounts[data.id] = data.installs;
+        doFilter();
+        updateHeroStats();
+      }
+    })
+    .catch(() => {});
 }
 
 // ── Translation helper ─────────────────────────────────────
@@ -490,15 +546,13 @@ function applyLang() {
   document.getElementById('hero-h1a').textContent   = t('hero_h1a');
   document.getElementById('hero-h1b').textContent   = t('hero_h1b');
   document.getElementById('hero-p').textContent     = t('hero_p');
-  document.getElementById('st-auto').textContent   = t('st_auto');
-  document.getElementById('st-users').textContent  = t('st_users');
-  document.getElementById('st-rating').textContent = t('st_rating');
+  document.getElementById('st-auto').textContent     = t('st_auto');
+  document.getElementById('st-installs').textContent = t('st_installs');
 
   // Filter bar
   document.getElementById('sIn').placeholder        = t('search_ph');
   document.getElementById('opt-pop').textContent    = t('sort_pop');
   document.getElementById('opt-new').textContent    = t('sort_new');
-  document.getElementById('opt-rate').textContent   = t('sort_rate');
   document.getElementById('opt-az').textContent     = t('sort_az');
 
   // Section
@@ -599,9 +653,8 @@ function doFilter() {
   });
 
   list = [...list].sort((a, b) => {
-    if (sort === 'popular') return b.installs - a.installs;
+    if (sort === 'popular') return totalInstalls(b) - totalInstalls(a);
     if (sort === 'newest')  return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
-    if (sort === 'rating')  return b.rating - a.rating;
     return a.name.localeCompare(b.name);
   });
 
@@ -615,11 +668,6 @@ function updateCount(n) {
 }
 
 // ── Card rendering ─────────────────────────────────────────
-function stars(rating) {
-  return [1,2,3,4,5].map(i =>
-    `<span class="star" style="color:${i <= Math.round(rating) ? '#FF9F0A' : '#E5E5EA'}">★</span>`
-  ).join('');
-}
 function renderCards(list) {
   if (!list.length) {
     document.getElementById('grid').innerHTML =
@@ -627,7 +675,6 @@ function renderCards(list) {
     return;
   }
   document.getElementById('grid').innerHTML = list.map(a => {
-    const rc   = a.reviewCount >= 1000 ? (a.reviewCount / 1000).toFixed(1) + 'k' : a.reviewCount;
     const nameEsc = a.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     return `<article class="card">
       <div class="c-head">
@@ -642,13 +689,14 @@ function renderCards(list) {
         </div>
       </div>
       <div class="c-desc">${a.description}</div>
-      <div class="c-rating">
-        <div class="stars">${stars(a.rating)}</div>
-        <span class="r-num">${a.rating}</span>
-        <span class="r-cnt">(${rc})</span>
+      <div class="c-installs">
+        <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M6 1v7M3 5.5l3 3 3-3M1 10.5h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span><b>${formatCount(totalInstalls(a))}</b> ${t('installs_label')}</span>
       </div>
       <div class="c-actions">
-        <a href="https://poke.com/r/${a.id}" class="btn-inst" target="_blank" rel="noopener">
+        <a href="https://poke.com/r/${a.id}" class="btn-inst" target="_blank" rel="noopener" onclick="trackInstall('${a.id}')">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M6 1v7M3 5.5l3 3 3-3M1 10.5h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>

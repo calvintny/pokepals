@@ -1,0 +1,9 @@
+{
+  "name": "pokepals",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Pokepals — automation marketplace for Poke AI. Static site; the only dependency is for the install-counter Netlify Function.",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

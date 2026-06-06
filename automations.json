@@ -9,8 +9,6 @@
       "cat": "Email",
       "isNew": false,
       "isPopular": true,
-      "rating": 4.8,
-      "reviewCount": 1243,
       "installs": 8900
     },
     {
@@ -22,8 +20,6 @@
       "cat": "Calendar",
       "isNew": false,
       "isPopular": false,
-      "rating": 4.7,
-      "reviewCount": 843,
       "installs": 6200
     },
     {
@@ -35,8 +31,6 @@
       "cat": "Integrations",
       "isNew": true,
       "isPopular": true,
-      "rating": 4.9,
-      "reviewCount": 2109,
       "installs": 15400
     },
     {
@@ -48,8 +42,6 @@
       "cat": "Web Search",
       "isNew": false,
       "isPopular": false,
-      "rating": 4.6,
-      "reviewCount": 567,
       "installs": 4100
     },
     {
@@ -61,8 +53,6 @@
       "cat": "Health",
       "isNew": true,
       "isPopular": false,
-      "rating": 4.7,
-      "reviewCount": 389,
       "installs": 2800
     }
   ]

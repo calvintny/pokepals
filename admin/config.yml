@@ -36,6 +36,15 @@ collections:
                 options: ["Email", "Calendar", "Reminders", "Web Search", "Integrations", "Health"]
               - { name: "isNew", label: "Show \"NEW\" badge", widget: "boolean", default: false }
               - { name: "isPopular", label: "Show \"Popular\" badge", widget: "boolean", default: false }
-              - { name: "rating", label: "Star rating (0–5)", widget: "number", value_type: "float", min: 0, max: 5, step: 0.1 }
-              - { name: "reviewCount", label: "Review count", widget: "number", value_type: "int", min: 0 }
-              - { name: "installs", label: "Install count", widget: "number", value_type: "int", min: 0, hint: "Drives \"Most popular\" sort order" }
+              - name: "installs"
+                label: "Starting install count"
+                widget: "number"
+                value_type: "int"
+                min: 0
+                default: 0
+                hint: >
+                  A seed number so a brand-new automation doesn't show "0 installs" on day one.
+                  The site adds the REAL, live install count (tracked automatically whenever
+                  someone clicks Install) on top of this everywhere a total is shown — including
+                  the "Most popular" sort and the homepage stats. You don't need to update this
+                  later; just pick a reasonable starting point now.

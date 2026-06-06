@@ -12,12 +12,38 @@ It's a static site — plain HTML/CSS/JS, no build step, no framework. Fast to l
 - `translations.js` — UI copy in 10 languages (auto-detected from the browser, with a manual switcher)
 - `automations.json` — the catalog of automations shown on the page (**this is what the CMS edits**)
 - `admin/` — [Decap CMS](https://decapcms.org) admin panel for editing `automations.json` without touching code
+- `netlify/functions/install-counts.js` — a small serverless function that tracks **real** install-button
+  clicks (see "Live install counts" below)
+- `package.json` — only exists so that function can use `@netlify/blobs`; the site itself has zero
+  build step and zero frontend dependencies
 
 ## Deploying to Netlify
 
 1. Push this repo to GitHub (or GitLab/Bitbucket).
-2. In Netlify: **Add new site → Import an existing project**, pick the repo. Build command: none. Publish directory: `.` (already set in `netlify.toml`).
-3. Deploy — that's it, the site is static.
+2. In Netlify: **Add new site → Import an existing project**, pick the repo. Build command: none (or
+   leave the default — there's nothing to build). Publish directory: `.` (already set in `netlify.toml`).
+   Netlify will automatically detect and deploy the function in `netlify/functions/`.
+3. Deploy — the page itself is static and instant; the function spins up on its own.
+
+## Live install counts
+
+The "Automations" and "Total installs" numbers in the hero, and the install count shown on every card,
+are **real** — not made-up marketing numbers:
+
+- **Automations count** is simply the live length of `automations.json` — add or remove an entry via the
+  CMS and the number updates on the next page load.
+- **Install counts** are tracked server-side: every time someone clicks **Install**, the page fires a
+  request to `netlify/functions/install-counts.js`, which increments a counter in
+  [Netlify Blobs](https://docs.netlify.com/blobs/overview/) (a free key-value store built into every
+  Netlify site — nothing to sign up for or configure). The number shown for each automation is that
+  live tracked count *added on top of* the "Starting install count" you set in the CMS, so a
+  brand-new automation doesn't look empty on day one but the number still grows for real as people
+  install it.
+
+This needs no setup beyond deploying the function (which Netlify does automatically). One caveat: the
+counter does a read-then-write rather than an atomic increment, so under heavy simultaneous traffic it
+could occasionally undercount by one or two — a fine trade-off for a "this is popular" indicator, and it
+avoids needing a real database.
 
 ## Setting up the CMS (one-time)
 
@@ -50,8 +76,8 @@ so it can authenticate you and commit your edits back to the repo:
 7. From then on, just go to `https://<your-site>.netlify.app/admin/` and log in normally.
 
 From then on, editing `automations.json` is a form — no JSON, no git, no code. Add/remove/reorder
-automations, set the icon, category, badges, rating, etc. Saving commits straight to `main`, and Netlify
-redeploys automatically (usually live within a minute).
+automations, set the icon, category, badges, starting install count, etc. Saving commits straight to
+`main`, and Netlify redeploys automatically (usually live within a minute).
 
 ## Adding/editing automations manually
 
@@ -67,13 +93,14 @@ If you'd rather skip the CMS, `automations.json` is a plain JSON file:
   "cat": "Email",
   "isNew": true,
   "isPopular": false,
-  "rating": 4.8,
-  "reviewCount": 120,
-  "installs": 900
+  "installs": 0
 }
 ```
 
 - `id` must match the recipe slug at `poke.com/r/[id]` — it drives both the install link and the share link.
+- `installs` is just a *starting* number (so a brand new entry doesn't show "0 installs"). The page adds
+  the real, live tracked count on top automatically — see "Live install counts" above. You never need to
+  edit this again after creating the entry.
 - `cat` should be one of the categories already in use (Email, Calendar, Reminders, Web Search, Integrations, Health) so it groups correctly with the filter pills — though any string works, it'll just become its own filter.
 - `bg` accepts any CSS `background` value (gradients work well with the design).
 
